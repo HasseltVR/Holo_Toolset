@@ -1,0 +1,1 @@
+Recorded calibration frames are saved in this folder ( (working directory)\recording\ )

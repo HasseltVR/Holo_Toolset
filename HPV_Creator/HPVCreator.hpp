@@ -299,7 +299,7 @@ namespace HPV {
 		int process_sequence(std::size_t amount_of_concurrency);
         void process_item(uint8_t thread_idx);
         void coordinate(uint8_t num_threads);
-        void cancel();
+        void stop();
         void reset();
 
     private:
@@ -326,7 +326,7 @@ namespace HPV {
         std::vector<std::string> * file_names;
 
         std::atomic<bool> should_coordinate;
-        std::thread coordinator_thread;
+        std::unique_ptr<std::thread> coordinator_thread;
 
         std::vector<std::thread> work_threads;
         ThreadSafe_Queue<HPVCompressionWorkItem>   compression_queue;

@@ -42,9 +42,9 @@ private slots:
     void convertOrCancel();
     void updateUi();
     void checkProgress();
-    void checkIfDone();
     void directoryInChanged();
     void directoryOutChanged();
+    void fileOutChanged(const QString&);
     void inFrameChanged(int in);
     void outFrameChanged(int out);
     void fpsChanged(int fps);

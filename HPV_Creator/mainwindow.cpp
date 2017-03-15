@@ -106,7 +106,7 @@ void MainWindow::createWidgets()
     inFrameSpinBox = new QSpinBox;
     inFrameSpinBox->setRange(0, INT_MAX);
 
-    outFrameLabel = new QLabel(tr("End frame"));
+    outFrameLabel = new QLabel(tr("End frame:"));
     outFrameSpinBox = new QSpinBox;
     outFrameSpinBox->setRange(0, INT_MAX);
 
@@ -115,7 +115,7 @@ void MainWindow::createWidgets()
     fpsSpinBox->setRange(1, 100);
     fpsSpinBox->setValue(25);
 
-    modeLabel = new QLabel(tr("Compression mode:"));
+    modeLabel = new QLabel(tr("Compression type:"));
     modeComboBox = new QComboBox();
 
     for (uint8_t type = 0; type < (uint8_t)HPVCompressionType::HPV_NUM_TYPES; ++type)
@@ -129,7 +129,7 @@ void MainWindow::createWidgets()
 
     logEdit = new QPlainTextEdit;
     logEdit->setReadOnly(true);
-    logEdit->setPlainText(tr("Choose a path, source type and target file type, and click Convert."));
+    logEdit->setPlainText(tr("Choose an input and output path, setup compression parameters, and click Convert."));
 
     convertOrCancelButton = new QPushButton(tr("&Convert"));
     quitButton = new QPushButton(tr("Quit"));
@@ -167,6 +167,7 @@ void MainWindow::createConnections()
     connect(directoryInEdit, SIGNAL(textChanged(const QString&)), this, SLOT(updateUi()));
     connect(directoryInButton, SIGNAL(clicked(bool)), this, SLOT(directoryInChanged()));
     connect(directoryOutButton, SIGNAL(clicked(bool)), this, SLOT(directoryOutChanged()));
+    connect(directoryOutEdit, SIGNAL(textChanged(const QString&)), this, SLOT(fileOutChanged(const QString&)));
     connect(inFrameSpinBox, SIGNAL(valueChanged(int)), this, SLOT(inFrameChanged(int)));
     connect(outFrameSpinBox, SIGNAL(valueChanged(int)), this, SLOT(outFrameChanged(int)));
     connect(fpsSpinBox, SIGNAL(valueChanged(int)), this, SLOT(fpsChanged(int)));
@@ -228,8 +229,8 @@ void MainWindow::updateInputFolder(const QString& folder)
         }
 
         directoryInEdit->setText(folder);
-        outFrameSpinBox->setValue(static_cast<int>(file_names.size()-1));
         outFrameSpinBox->setMaximum(static_cast<int>(file_names.size()-1));
+        outFrameSpinBox->setValue(static_cast<int>(file_names.size()-1));
         logEdit->appendPlainText("Opened folder '" + folder + "'");
         logEdit->appendPlainText("Added " + QString::number(file_names.size()) + " files to compression list");
     }
@@ -276,6 +277,18 @@ void MainWindow::directoryOutChanged()
     updateOutputFolder(dir);
 }
 
+void MainWindow::fileOutChanged(const QString& fileOut)
+{
+    if (fileOut.size() == 0)
+    {
+        logEdit->appendPlainText("Error: invalid output filepath");
+    }
+    else
+    {
+        hpv_params.out_path = fileOut.toStdString();
+    }
+}
+
 void MainWindow::inFrameChanged(int in)
 {
     hpv_params.in_frame = in;
@@ -306,12 +319,12 @@ void MainWindow::convertOrCancel()
         convertOrCancelButton->setText(tr("&Cancel"));
         convertOrCancelButton->setEnabled(true);
         hpv_creator.init(hpv_params, &progress_sink);
-        hpv_creator.process_sequence(4);
+        hpv_creator.process_sequence(8);
         QTimer::singleShot(PollTimeout, this, SLOT(checkProgress()));
     }
     else
     {
-        hpv_creator.cancel();
+        hpv_creator.stop();
 
         convertOrCancelButton->setText(tr("&Convert"));
         convertOrCancelButton->setEnabled(!directoryInEdit->text().isEmpty());
@@ -332,26 +345,20 @@ void MainWindow::checkProgress()
         HPVCompressionProgress progress;
         if (progress_sink.try_pop(progress))
         {
-            if (progress.state == HPV_CREATOR_STATE_ERROR)
+            if (progress.state == HPV_CREATOR_STATE_ERROR || progress.state == HPV_CREATOR_STATE_DONE)
             {
-                QString error_str = QString::fromStdString(progress.done_item_name);
-                logEdit->appendPlainText(error_str);
-
-                hpv_creator.cancel();
-
-                stopped = true;
-                updateUi();
-            }
-            else if (progress.state == HPV_CREATOR_STATE_DONE)
-            {
-                QString done_str = QString::fromStdString(progress.done_item_name);
-                logEdit->appendPlainText(done_str);
-                progressBar->reset();
+                QString progress_str = QString::fromStdString(progress.done_item_name);
+                logEdit->appendPlainText(progress_str);
                 done = true;
+
+                hpv_creator.stop();
+                hpv_creator.reset();
+
                 stopped = true;
                 updateUi();
 
-                hpv_creator.reset();
+                if (progress.state == HPV_CREATOR_STATE_DONE)
+                    progressBar->reset();
 
                 break;
             }
@@ -368,11 +375,6 @@ void MainWindow::checkProgress()
 
     if (!done)
         QTimer::singleShot(PollTimeout, this, SLOT(checkProgress()));
-
-}
-
-void MainWindow::checkIfDone()
-{
 
 }
 

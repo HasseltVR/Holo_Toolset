@@ -12,24 +12,24 @@ namespace HPV {
 
     HPVCreator::HPVCreator(int _version) : version(_version)
 	{
-        reset();
+        frame_size_table = nullptr;
+        progress_sink = nullptr;
+        file_names = nullptr;
+        should_coordinate.store(false, std::memory_order_relaxed);
 	}
 
 	HPVCreator::~HPVCreator()
 	{
-		delete[] frame_size_table;
 
-		if (frame_size_table)
-			frame_size_table = nullptr;
-
-        if (coordinator_thread.joinable())
-        {
-            coordinator_thread.join();
-        }
 	}
 
     int HPVCreator::init(const HPVCreatorParams& _params, ThreadSafe_Queue<HPVCompressionProgress> * _progress_sink)
 	{
+        if (file_counter > 0)
+        {
+            reset();
+        }
+
         error.state = HPV_CREATOR_STATE_ERROR;
 
         // this is where post progress messages
@@ -513,35 +513,30 @@ namespace HPV {
 		HPV_VERBOSE("Dividing work over %d threads", num_threads);
 
         should_coordinate.store(true, std::memory_order_relaxed);
-        coordinator_thread = std::thread(&HPVCreator::coordinate, this, num_threads);
+        coordinator_thread = std::make_unique<std::thread>(&HPVCreator::coordinate, this, num_threads);
 
         return HPV_RET_ERROR_NONE;
 	}
 
-    void HPVCreator::cancel()
+    void HPVCreator::stop()
     {
         // must obey specific order!
         should_coordinate.store(false, std::memory_order_relaxed);
 
         compression_queue.clear();
 
-        if (coordinator_thread.joinable())
+        if (coordinator_thread && coordinator_thread->joinable())
         {
-            coordinator_thread.join();
+            coordinator_thread->join();
+            coordinator_thread.reset();
         }
-
-        work_threads.clear();
-
-        filestream_queue.clear();
-
-        reset();
     }
 
     void HPVCreator::reset()
     {
         if (should_coordinate.load())
         {
-            cancel();
+            stop();
         }
         else
         {
@@ -550,6 +545,15 @@ namespace HPV {
             if (filestream_queue.size()) filestream_queue.clear();
         }
 
+        offset_runner = 0;
+        file_counter = 0;
+
+        if (frame_size_table)
+        {
+            delete[] frame_size_table;
+            frame_size_table = nullptr;
+        }
+        
         inpath = "";
         outpath = "";
         ref_width = 0;
@@ -559,7 +563,6 @@ namespace HPV {
         fps = 0;
         type = HPVCompressionType::HPV_NUM_TYPES;
         fs = nullptr;
-        frame_size_table = nullptr;
         bytes_per_frame = 0;
         bytes_in_header = 0;
         bytes_in_framesize_table = 0;

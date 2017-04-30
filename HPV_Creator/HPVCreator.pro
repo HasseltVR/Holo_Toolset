@@ -1,5 +1,5 @@
 ICON = HPVCreator.icns
-RC_ICONS = HPVCreator.ico
+win32: RC_ICONS = HPVCreator.ico
 CONFIG	     -= console debug
 HEADERS	     += \
     stb_dxt.h \

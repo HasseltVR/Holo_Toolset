@@ -264,6 +264,18 @@ HPV_FNC_EXPORT_FLOAT GetPosition(uint8_t node_id)
 	}
 }
 
+HPV_FNC_EXPORT_INT GetPositionMs(uint8_t node_id)
+{
+	if (ManagerSingleton()->isValidNodeId(node_id))
+	{
+		return ManagerSingleton()->getPlayer(node_id)->getPositionMs();
+	}
+	else
+	{
+		return HPV_RET_ERROR;
+	}
+}
+
 HPV_FNC_EXPORT_PTR GetTexPtr(uint8_t node_id)
 {
 	if (ManagerSingleton()->isValidNodeId(node_id))
@@ -317,6 +329,30 @@ HPV_FNC_EXPORT_INT SeekToFrame(uint8_t node_id, int64_t frame)
 	if (ManagerSingleton()->isValidNodeId(node_id))
 	{
 		return ManagerSingleton()->getPlayer(node_id)->seek(frame);
+	}
+	else
+	{
+		return HPV_RET_ERROR;
+	}
+}
+
+HPV_FNC_EXPORT_INT SeekToMs(uint8_t node_id, int64_t ms)
+{
+	if (ManagerSingleton()->isValidNodeId(node_id))
+	{
+		return ManagerSingleton()->getPlayer(node_id)->seekMs(ms);
+	}
+	else
+	{
+		return HPV_RET_ERROR;
+	}
+}
+
+HPV_FNC_EXPORT_INT SetSyncState(uint8_t node_id, int state)
+{
+	if (ManagerSingleton()->isValidNodeId(node_id))
+	{
+		return ManagerSingleton()->getPlayer(node_id)->setSyncState(state);
 	}
 	else
 	{

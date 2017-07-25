@@ -190,6 +190,9 @@ namespace HPV {
 			desc.Format = format;
 			// no anti-aliasing
 			desc.SampleDesc.Count = 1;
+			//UINT q_levels = 0;
+			//g_D3D11Device->CheckMultisampleQualityLevels(format, desc.SampleDesc.Count, &q_levels);
+			//HPV_VERBOSE("MS Q levels: %u", q_levels);
 			desc.SampleDesc.Quality = 0;
 			desc.Usage = D3D11_USAGE_DYNAMIC;
 			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -202,12 +205,31 @@ namespace HPV {
 			//data.SysMemSlicePitch = data.SysMemPitch * (player->getHeight() / 4);
 			init_data.SysMemSlicePitch = 0;
 
-			// Init without initial data (2nd param NULL)
 			hr = g_D3D11Device->CreateTexture2D(&desc, &init_data, &data.d3d.tex);
-
 			if (SUCCEEDED(hr) && data.d3d.tex != 0)
 			{
 				HPV_VERBOSE("Succesfully created D3D Texture.");
+
+				D3D11_SAMPLER_DESC samplerDesc;
+				samplerDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+				samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+				samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+				samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+				samplerDesc.MipLODBias = 0.0f;
+				samplerDesc.MaxAnisotropy = 1;
+				samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+				samplerDesc.BorderColor[0] = 0;
+				samplerDesc.BorderColor[1] = 0;
+				samplerDesc.BorderColor[2] = 0;
+				samplerDesc.BorderColor[3] = 0;
+				samplerDesc.MinLOD = 0;
+				samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+				g_D3D11Device->CreateSamplerState(&samplerDesc, &sampler);
+
+				if (SUCCEEDED(hr))
+				{
+					HPV_VERBOSE("Created sampler state");
+				}
 
 				HPV_VERBOSE("Creating D3D SRV.");
 				D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
@@ -223,10 +245,10 @@ namespace HPV {
 				}
 				HPV_VERBOSE("Succesfully created D3D SRV.");
 
-				// get mapped resource row pitch for later updating the texture
 				ID3D11DeviceContext* ctx = NULL;
 				g_D3D11Device->GetImmediateContext(&ctx);
 
+				// get mapped resource row pitch for later updating the texture
 				D3D11_MAPPED_SUBRESOURCE mappedResource;
 				ctx->Map(data.d3d.tex, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 
@@ -237,6 +259,8 @@ namespace HPV {
 				ctx->Unmap(data.d3d.tex, 0);
 
 				ctx->Release();
+				
+				HPV_VERBOSE("Succesfully set sampler.");
 
 				data.gpu_resources_need_init = false;
 
@@ -397,6 +421,8 @@ namespace HPV {
 					if (render_data.d3d.tex)
 					{
 						if (render_data.player->_gather_stats) render_data.stats.before_upload = ns();
+
+						ctx->PSSetSamplers(0, 1, &sampler);
 
 						D3D11_MAPPED_SUBRESOURCE mappedResource;
 						ctx->Map(render_data.d3d.tex, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

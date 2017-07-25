@@ -163,6 +163,8 @@ namespace HPV {
 		IUnityInterfaces* s_UnityInterfaces;
 		IUnityGraphics* s_Graphics;
 		ID3D11Device* g_D3D11Device = NULL;
+		ID3D11SamplerState * sampler = NULL;
+
 
 		bool s3tc_supported = false;
 		bool pbo_supported = false;

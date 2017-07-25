@@ -39,6 +39,9 @@
 #define HPV_DIRECTION_FORWARDS		0x00
 #define HPV_DIRECTION_REVERSE		0x01
 
+#define HPV_SYNC_INTERNAL			0x00
+#define HPV_SYNC_EXTERNAL			0X01
+
 #define HPV_SPEED_EPSILON			0.05
 
 /* --------------------------------------------------------------------------------- */
@@ -78,6 +81,8 @@ namespace HPV {
         int             setSpeed(double speed);
         int             seek(double pos);
         int             seek(int64_t frame);
+		int				seekMs(int64_t ms);
+		int				setSyncState(int state);
         
         int             getWidth();
         int             getHeight();
@@ -95,6 +100,7 @@ namespace HPV {
         void            resetPlayer();
         
         float           getPosition();
+		int64_t			getPositionMs();
         int             getFrameRate();
         HPVCompressionType getCompressionType();
         

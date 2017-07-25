@@ -8,8 +8,7 @@
 *
 * Parts are based on code from roxlu https://github.com/roxlu/roxlu_experimental
 **********************************************************/
-#ifndef Timer_h
-#define Timer_h
+#pragma once
 
 #include <stdint.h>
 
@@ -29,7 +28,7 @@
 #  include <windows.h>
 #endif
 
-static uint64_t ns() {
+inline uint64_t ns() {
     static uint64_t is_init = 0;
 #if defined(__APPLE__)
     static mach_timebase_info_data_t info;
@@ -64,5 +63,3 @@ static uint64_t ns() {
     return (uint64_t) ((1e9 * now.QuadPart)  / win_frequency.QuadPart);
 #endif
 }
-
-#endif /* Timer_h */

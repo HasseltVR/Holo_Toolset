@@ -36,7 +36,9 @@
 #include <typeinfo>
 #include <cstring>
 #include <algorithm>
+#ifdef __GNUG__
 #include <cxxabi.h>
+#endif
 #include <cstdlib>
 
 namespace cmdline{
@@ -105,9 +107,13 @@ Target lexical_cast(const Source &arg)
 static inline std::string demangle(const std::string &name)
 {
   int status=0;
+#ifdef __GNUG__
   char *p=abi::__cxa_demangle(name.c_str(), 0, 0, &status);
   std::string ret(p);
   free(p);
+#else
+  std::string ret(name);
+#endif
   return ret;
 }
 
@@ -566,7 +572,11 @@ public:
 
     size_t max_width=0;
     for (size_t i=0; i<ordered.size(); i++){
+#ifdef __GNUG__
       max_width=std::max(max_width, ordered[i]->name().length());
+#else
+	  max_width=(std::max)(max_width, ordered[i]->name().length());
+#endif
     }
     for (size_t i=0; i<ordered.size(); i++){
       if (ordered[i]->short_name()){

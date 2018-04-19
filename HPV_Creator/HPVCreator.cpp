@@ -2,6 +2,8 @@
 #define STB_DXT_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 
+#include <sys/stat.h>
+
 #include "stb_dxt.h"
 #include "stb_image.h"
 #include "HPVCreator.hpp"
@@ -264,15 +266,6 @@ namespace HPV {
         // save current offset to start writing frame data later
         offset_runner = bytes_in_header + bytes_in_framesize_table;
 
-		// test
-		/*
-		std::ifstream ifs;
-		ifs.open("./video.dxt5", std::ios::binary | std::ios::in);
-
-		DXT::readHeader(&ifs, &header);
-		HPV_VERBOSE("header written: %d %d %d %d %d %d", header.crc, header.version, header.video_width, header.video_height, header.number_of_frames, header.frame_rate);
-		*/
-
         return HPV_RET_ERROR_NONE;
 	}
 
@@ -300,7 +293,7 @@ namespace HPV {
 
             if (item)
             {
-                // Writing is key succesive, so the writer doesn't have to seek to
+                // Writing is key successive, so the writer doesn't have to seek to
                 // non-neighbouring frame positions
                 item->write_pos = offset_runner;
 
@@ -349,7 +342,7 @@ namespace HPV {
             compressed_total_size += frame_size_table[i];
         }
 
-        // rewrite our succesful frames in the header
+        // rewrite our successful frames in the header
         fs->write_to_stream((const char *)&length, 16, 4);
 
         // in the end: rewrite crc of frame sizes table

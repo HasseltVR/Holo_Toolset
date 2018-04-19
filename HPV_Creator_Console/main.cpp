@@ -78,7 +78,10 @@ static uint32_t parse_in_path(HPVCreatorParams& params)
             filename.clear();
         }
     }
-    
+
+    // sort vector because linux implementation of readdir() implementation
+    // is not guaranteed to be incremental
+    std::sort(file_names.begin(), file_names.end());
     params.file_names = &file_names;
     
     closedir(dir);

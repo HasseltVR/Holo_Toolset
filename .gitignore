@@ -246,3 +246,7 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# HPV_Creator_Console builds
+HPV_Creator_Console/build/
+HPV_Creator_Console/output/

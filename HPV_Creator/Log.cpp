@@ -207,7 +207,7 @@ namespace HPV {
   }
 
   void hpv_log_enable_stdout() {
-    hpv_log.write_to_stdout = false;
+    hpv_log.write_to_stdout = true;
   }
 
   void hpv_log_disable_log_to_file() {

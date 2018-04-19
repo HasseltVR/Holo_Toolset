@@ -65,7 +65,10 @@ namespace HPV {
 	* All Supported file types
 	*
 	*/
-    const std::vector<std::string> supported_filetypes = { "*.png", "*.jpeg", "*.jpg", "*.tga", "*.gif", "*.bmp", "*.psd", "*.gif", "*.hdr", "*.pic", "*.ppm", "*.pgm" };
+    const std::vector<std::string> supported_filetypes =
+    { "png", "jpeg", "jpg", "tga", "gif", "bmp", "psd", "gif", "hdr", "pic", "ppm", "pgm" };
+    
+    bool file_supported(const std::string& path);
     
 	struct HPVCreatorParams
 	{
@@ -75,6 +78,7 @@ namespace HPV {
 		uint32_t in_frame;
 		uint32_t out_frame;
 		uint8_t fps;
+        uint8_t num_threads;
 		HPVCompressionType type;
 	};
 
@@ -181,7 +185,6 @@ namespace HPV {
 					//uint64_t b = ns();
 					ofs->seekp(item->write_pos);
 					//uint64_t a = ns();
-					//DXT_VERBOSE("Seeking took: %3.2f ms", (a - b) / 1e6);
 				}
 				else 
 					bOK = false;
@@ -191,7 +194,6 @@ namespace HPV {
 					//uint64_t b = ns();
                     ofs->write((const char *)item->write_out_buf, item->frame_size);
 					//uint64_t a = ns();
-					//DXT_VERBOSE("Writing took: %3.2f ms", (a - b) / 1e6);
 				}
 				else 
 					bOK = false;
@@ -201,7 +203,6 @@ namespace HPV {
 					//uint64_t b = ns();
 					ofs->flush();
 					//uint64_t a = ns();
-					//DXT_VERBOSE("Flushing took: %3.2f ms", (a - b) / 1e6);
 				}
 				else 
 					bOK = false;

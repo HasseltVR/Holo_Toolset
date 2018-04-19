@@ -9,6 +9,25 @@
 namespace HPV {
 
     static HPVCompressionProgress error;
+    
+    bool file_supported(const std::string& path)
+    {
+        if (path.empty())
+            return false;
+        
+        const size_t pos = path.find_last_of(".");
+        
+        if (pos == std::string::npos || pos == 0)
+        {
+            return false;
+        }
+        
+        const std::string ext = path.substr(pos+1, std::string::npos);
+        
+        return (std::find(HPV::supported_filetypes.begin(),
+                          HPV::supported_filetypes.end(), ext)
+                != HPV::supported_filetypes.end());
+    }
 
     HPVCreator::HPVCreator(int _version) : version(_version)
 	{
@@ -320,7 +339,7 @@ namespace HPV {
 
         // join all threads
         std::for_each(work_threads.begin(), work_threads.end(), std::mem_fn(&std::thread::join));
-
+        
         uint64_t end = ns();
 
         uint64_t compressed_total_size = 0;

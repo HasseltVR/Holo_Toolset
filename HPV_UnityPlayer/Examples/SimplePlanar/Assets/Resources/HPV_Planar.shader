@@ -12,7 +12,8 @@
             #include "UnityCG.cginc"
             
             uniform sampler2D _MainTex;
-
+			//Texture2D _mainTex;
+			//SamplerState sampler_mainTex;
 
 			static const float4 offsets = float4(0.50196078431373, 0.50196078431373, 0.0, 0.0);
 			static const float scale_factor = 255.0 / 8.0;
@@ -22,6 +23,8 @@
 
 				#if CT_RGB
 				return tex2D(_MainTex, tc);
+				//return _mainTex.Sample(sampler_mainTex, float2(tc));
+				//return SampleBicubic(_MainTex, sampler_mainTex, float2(tc));
 				#endif
 
 				#if CT_CoCg_Y

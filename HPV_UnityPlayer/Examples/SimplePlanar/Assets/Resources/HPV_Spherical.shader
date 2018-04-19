@@ -11,6 +11,7 @@
             Blend SrcAlpha OneMinusSrcAlpha
  
             CGPROGRAM
+				#pragma target 5.0
                 #pragma vertex vert
                 #pragma fragment frag
 				#pragma multi_compile CT_RGB CT_CoCg_Y
@@ -20,6 +21,9 @@
 				static const float4 offsets = float4(0.50196078431373, 0.50196078431373, 0.0, 0.0);
 				static const float scale_factor = 255.0 / 8.0;
 				sampler2D _MainTex;
+				//Texture2D _mainTex;
+				//SamplerState sampler_mainTex;
+
  
                 struct appdata {
                    float4 vertex : POSITION;
@@ -57,6 +61,7 @@
 					
 					#if CT_RGB
 					return tex2D(_MainTex, equiUV);
+					//return _mainTex.Sample(sampler_mainTex, float2(equiUV));
 					#endif
 
 					#if CT_CoCg_Y

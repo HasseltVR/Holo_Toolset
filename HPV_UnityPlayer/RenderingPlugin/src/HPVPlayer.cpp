@@ -639,8 +639,11 @@ namespace HPV {
     
     int HPVPlayer::seek(int64_t frame)
     {
-        if (frame < 0 || frame >= _header.number_of_frames)
-            return HPV_RET_ERROR;
+		if (frame < 0)
+			frame = 0;
+			
+		if (frame >= _header.number_of_frames)
+			frame = _header.number_of_frames-1;
         
         _seeked_frame = frame;
         
@@ -648,6 +651,33 @@ namespace HPV {
         
         return HPV_RET_ERROR_NONE;
     }
+
+	int HPVPlayer::seekMs(int64_t ms)
+	{
+		double frame_time_ms = 1000. / (double)_header.frame_rate;
+		int64_t frame = static_cast<int64_t>(floor(ms / frame_time_ms));
+
+		this->seek(frame);
+
+		_was_seeked.store(true, std::memory_order_relaxed);
+
+		return HPV_RET_ERROR_NONE;
+	}
+
+	int HPVPlayer::setSyncState(int state)
+	{
+		if (state == HPV_SYNC_INTERNAL)
+		{
+			this->play();
+			this->setLoopMode(HPV_MODE_LOOP);
+		}
+		else if (state == HPV_SYNC_EXTERNAL)
+		{
+			this->pause();
+		}
+
+		return HPV_RET_ERROR_NONE;
+	}
     
     void HPVPlayer::resetPlayer()
     {
@@ -740,6 +770,16 @@ namespace HPV {
         
         return _curr_frame / static_cast<float>(_header.number_of_frames);
     }
+
+	int64_t HPVPlayer::getPositionMs()
+	{
+		if (_header.number_of_frames <= 0)
+		{
+			return 0;
+		}
+
+		return static_cast<int64_t>(floor(_curr_frame * (1000. / static_cast<double>(_header.frame_rate))));
+	}
     
     bool HPVPlayer::hasNewFrame()
     {

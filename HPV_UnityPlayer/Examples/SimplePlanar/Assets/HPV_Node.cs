@@ -101,9 +101,9 @@ public class HPV_Node : MonoBehaviour
         if (node_id >= 0)
         {
             m_node_id = (byte)node_id;
-            string filepath = Application.streamingAssetsPath + "/../../" + filename;
+            //string filepath = Application.streamingAssetsPath + "/../../" + filename;
+            string filepath = filename;
             int ret = m_manager.openVideo(m_node_id, filepath);
-     
             if (ret == 1)
             {
                 // store parameters of the file
@@ -112,10 +112,12 @@ public class HPV_Node : MonoBehaviour
                 height = m_manager.getHeight(m_node_id);
                 int number_of_frames = m_manager.getNumberOfFrames(m_node_id);
                 hpv_type = m_manager.getCompressionType(m_node_id);
-            
-                ret = m_manager.startVideo(m_node_id);
-                ret = m_manager.setLoopState(m_node_id, 1);
 
+                /* If state == internal, video will play using internal clock. This call also sets loop mode to LOOP */
+                m_manager.setSyncState(m_node_id, HPV_Unity_Bridge.HPVSyncState.HPV_SYNC_INTERNAL);
+                /* ... else, wait for external sync, using one of the seek methods */
+                //m_manager.setSyncState(m_node_id, HPV_Unity_Bridge.HPVSyncState.HPV_SYNC_EXTERNAL);
+            
                 Debug.Log("Opened video " + filename + " with total of " + number_of_frames + " of frames and dimensions " + width + "x" + height + " @ " + fps + "fps [TYPE: " + HPV_Unity_Bridge.HPVCompressionTypeStrings[(int)hpv_type] + "]");
                 b_needs_init = true;
             }                 
@@ -218,6 +220,12 @@ public class HPV_Node_Editor : Editor
     private float seek = 0;
     private float prev_seek = 0;
 
+    private int seek_ms = 0;
+
+    private HPV_Unity_Bridge.HPVSyncState sync_state = HPV_Unity_Bridge.HPVSyncState.HPV_SYNC_INTERNAL;
+    private HPV_Unity_Bridge.HPVSyncState prev_sync_state = HPV_Unity_Bridge.HPVSyncState.HPV_SYNC_INTERNAL;
+
+
     private bool isNearlyEqual(float x, float y)
     {
         const float epsilon = 1e-5F;
@@ -236,12 +244,19 @@ public class HPV_Node_Editor : Editor
             return;
 
         byte m_node_id = ((HPV_Node)target).getID();
-        GUILayoutOption[] options = { GUILayout.Width(250), GUILayout.Height(100) };
+        GUILayoutOption[] options = { GUILayout.Width(300), GUILayout.Height(100) };
 
         // global vertical
         EditorGUILayout.BeginVertical(options);
 
         EditorGUILayout.Separator();
+        sync_state = (HPV_Unity_Bridge.HPVSyncState)EditorGUILayout.EnumPopup("Player sync state:", sync_state);
+        if (sync_state != prev_sync_state)
+        {
+            manager.setSyncState(m_node_id, sync_state);
+            prev_sync_state = sync_state;
+        }
+
         // play controls horizontal
         EditorGUILayout.LabelField("Play Controls");
         EditorGUILayout.BeginHorizontal();
@@ -340,6 +355,16 @@ public class HPV_Node_Editor : Editor
         {
             manager.seekToPos(m_node_id, seek);
             prev_seek = seek;
+            seek_ms = manager.getPositionMs(m_node_id);
+        }
+
+        EditorGUILayout.Separator();
+        EditorGUILayout.LabelField("Seek To MS");
+        seek_ms = EditorGUILayout.IntField(seek_ms);
+        if (GUILayout.Button("Seek to MS"))
+        {
+            manager.seekToMs(m_node_id, seek_ms);
+            seek = prev_seek = manager.getPosition(m_node_id);
         }
 
         bShowStats = EditorGUILayout.Foldout(bShowStats, "Decode stats");

@@ -159,6 +159,12 @@ public class HPV_Unity_Bridge
     public static extern float GetPosition(byte hpv_node_id);
 
     /// <summary>
+    /// Get the actual playhead (normalized)
+    /// </summary>	
+    [DllImport("HPV_Unity_Bridge")]
+    public static extern int GetPositionMs(byte hpv_node_id);
+
+    /// <summary>
     /// Set the playback speed
     /// </summary>	
     [DllImport("HPV_Unity_Bridge", CallingConvention = CallingConvention.Cdecl)]
@@ -169,6 +175,18 @@ public class HPV_Unity_Bridge
     /// </summary>	
     [DllImport("HPV_Unity_Bridge", CallingConvention = CallingConvention.Cdecl)]
     public static extern int SeekToPos(byte hpv_node_id, double pos);
+
+    /// <summary>
+    /// Seek to millisecond position, 0 is first frame.
+    /// </summary>	
+    [DllImport("HPV_Unity_Bridge", CallingConvention = CallingConvention.Cdecl)]
+    public static extern int SeekToMs(byte hpv_node_id, int ms);
+
+    /// <summary>
+    /// Seek to millisecond position, 0 is first frame.
+    /// </summary>	
+    [DllImport("HPV_Unity_Bridge", CallingConvention = CallingConvention.Cdecl)]
+    public static extern int SetSyncState(byte hpv_node_id, int state);
 
     /// <summary>
     /// Enable the gathering of decode stats
@@ -225,6 +243,13 @@ public class HPV_Unity_Bridge
         HPV_EVENT_NUM_TYPES = 5
     };
 
+    public enum HPVSyncState
+    {
+        HPV_SYNC_INTERNAL = 0,
+        HPV_SYNC_EXTERNAL,
+        HPV_NUM_SYNC_TYPES = 2
+    };
+
     public struct HPVDecodeStats
     {
         public ulong hdd_read_time;
@@ -244,9 +269,6 @@ public delegate void HPVEventDelegate(HPV_Unity_Bridge.HPVEventType eventID);
 */
 public class HPV_Manager : MonoBehaviour
 {
-    /* Amount of active HPV Nodes */
-    private int m_active_nodes = 0;
-
     /* The update loop */
     private IEnumerator HPV_update_loop;
 
@@ -381,6 +403,27 @@ public class HPV_Manager : MonoBehaviour
     {
         return HPV_Unity_Bridge.SeekToPos(node_id, pos);
     }
+
+    public int seekToMs(byte node_id, int ms)
+    {
+        return HPV_Unity_Bridge.SeekToMs(node_id, ms);
+    }
+
+    public int setSyncState(byte node_id, HPV_Unity_Bridge.HPVSyncState state)
+    {
+        return HPV_Unity_Bridge.SetSyncState(node_id, (int)state);
+    }
+
+    public float getPosition(byte node_id)
+    {
+        return HPV_Unity_Bridge.GetPosition(node_id);
+    }
+
+    public int getPositionMs(byte node_id)
+    {
+        return HPV_Unity_Bridge.GetPositionMs(node_id);
+    }
+
 
     public int getNumberOfFrames(byte node_id)
     {

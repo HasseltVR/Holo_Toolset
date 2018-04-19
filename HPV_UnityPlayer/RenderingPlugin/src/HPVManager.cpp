@@ -65,8 +65,8 @@ namespace HPV {
     {
         int8_t node_idx = -1;
         
-        if (m_players.size() <= HPV::MAX_NUMBER_OF_PLAYERS)
-        {
+        //if (m_players.size() <= HPV::MAX_NUMBER_OF_PLAYERS)
+        //{
             std::shared_ptr<HPVPlayer> new_player = std::make_shared<HPVPlayer>();
             if (m_event_listeners.size())
             {
@@ -76,7 +76,7 @@ namespace HPV {
             m_players.insert(std::pair<uint8_t, HPVPlayerRef>(node_idx, new_player));
 			new_player->_id = node_idx;
             m_num_players++;
-        }
+        //}
         
         return node_idx;
     }

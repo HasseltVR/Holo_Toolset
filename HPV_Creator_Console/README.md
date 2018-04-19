@@ -32,11 +32,11 @@ cmake .. -G "MinGW Makefiles"
 mingw32-make
 ```
 
-Command-line parameters:
+## Command-line parameters:
 ```
 usage: ./HPVCreatorConsole --in=string --fps=int --type=int [options] ... 
 options:
-  -i, --in         in path (string)
+  -i, --in         in path (string) to image sequence directory
   -f, --fps        framerate (int)
   -t, --type       type (int)
   -s, --start      start frame (int [=0])
@@ -45,3 +45,8 @@ options:
   -n, --threads    num threads (int [=8])
   -?, --help       print this message
 ```
+The parameters above are mostly self-explanatory, but `type` is required and the argument should be an `int`, corresponding to the following compression types:
+
+* `0` = DXT1 (no alpha)
+* `1` = DTX5 (with alpha)
+* `2` = Scaled DXT5 (CoCg_Y)
